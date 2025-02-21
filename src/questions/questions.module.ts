@@ -3,10 +3,10 @@ import {
   IQuestionsRepositoryToken,
   QuestionsService,
 } from './questions.service';
-import { QuestionsController } from './questions.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Question } from './entities/question.entity';
 import { TypeOrmQuestionsRepository } from './questions.repository';
+import { QuestionsController } from './questions.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Question])],
@@ -19,4 +19,4 @@ import { TypeOrmQuestionsRepository } from './questions.repository';
   ],
   controllers: [QuestionsController],
 })
-export class QuestionsModule {}
+export class QuestionsModule { }

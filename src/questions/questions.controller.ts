@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  ParseArrayPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -16,13 +17,13 @@ import {
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { FindAllQuestionsDto } from './dto/find-all-questions.dto';
 import { UserNotFoundError } from 'src/users/users.service';
+import { ParseIdPipe } from 'src/core/parse-id.pipe';
 
 @Controller('/questions')
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) { }
   @Post()
   async create(@Body() dto: CreateQuestionDto) {
-    console.log(dto);
     return this.questionsService
       .create(dto)
       .then((question) => {
@@ -48,28 +49,16 @@ export class QuestionsController {
   }
 
   @Get('/:id')
-  async getOne(@Param('id') id: string) {
-    const idNum = Number(id);
-    if (Number.isNaN(idNum) || idNum < 1) {
-      throw new HttpException(
-        `Invalid id param: ${id}. Id should be a valid interger and > 0`,
-        400,
-      );
-    }
-    return this.questionsService.getOne(idNum).catch((err) => {
+  async getOne(@Param('id', ParseIdPipe) id: number) {
+    return this.questionsService.getOne(id).catch((err) => {
       if (err instanceof QuestionNotFoundError) {
         throw new HttpException(err.message, 404);
       }
     });
   }
   @Get("/get-by-ids")
-  async getByIds(@Query("ids") ids: string[]) {
-    if (typeof ids === "string") {
-      ids = [ids]
-    }
-    console.log("ids", ids, "typeof ids", typeof ids, "isarray", Array.isArray(ids))
-    const idsInt = ids.map(Number)
-    return this.questionsService.getByIds(idsInt)
+  async getByIds(@Query("ids", new ParseArrayPipe({ items: Number })) ids: number[]) {
+    return this.questionsService.getByIds(ids)
   }
 
 }

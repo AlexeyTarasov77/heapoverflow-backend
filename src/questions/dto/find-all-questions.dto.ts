@@ -8,13 +8,27 @@ import {
   Min,
 } from 'class-validator';
 
-const questionsSortOptions = ['mostAnswers', 'newest'];
+
+export enum QuestionFilterOptions {
+  UNANSWERED = "unanswered"
+}
+
+export enum QuestionSortOptions {
+  MOST_ANSWERS = "mostAnswers",
+  NEWEST = "newest"
+}
 
 export class FindAllQuestionsDto {
-  @IsIn(questionsSortOptions)
+  @IsIn(Object.values(QuestionSortOptions))
   @IsString()
   @IsOptional()
   readonly sort: string;
+
+  @IsIn(Object.values(QuestionFilterOptions))
+  @IsString()
+  @IsOptional()
+  readonly filter: string;
+
 
   @Min(1)
   @IsInt()

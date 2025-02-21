@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
 import { Question } from './entities/question.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { getErrCode, isQueryFailed } from 'src/core/typeorm-utils';
 import { FkViolationError, PostgresErrorCodes } from 'src/core/storage';
 import { AlreadyExistsError } from '../core/storage';
 import { IQuestionsRepository } from './questions.service';
-import { FindAllQuestionsDto } from './dto/find-all-questions.dto';
+import { FindAllQuestionsDto, QuestionFilterOptions, QuestionSortOptions } from './dto/find-all-questions.dto';
+import { Answer } from './entities/answer.entity';
 
 @Injectable()
 export class TypeOrmQuestionsRepository implements IQuestionsRepository {
@@ -46,32 +47,36 @@ export class TypeOrmQuestionsRepository implements IQuestionsRepository {
     let queryBuilder = this.questionsRepo
       .createQueryBuilder('question')
       .innerJoinAndSelect('question.author', 'author')
-      .loadRelationCountAndMap('question.answersCount', 'question.answers');
+      .leftJoin(Answer, "ans", 'ans."questionId" = question.id')
+      .addSelect("COUNT(ans.id)", "answersCount")
+      .groupBy("question.id")
+      .addGroupBy("author.id")
     switch (dto.sort) {
-      case 'mostAnswers':
-        queryBuilder = queryBuilder
-          .addSelect((qb) => {
-            return qb
-              .select('COUNT(answer.id)')
-              .from('answer', 'answer')
-              .where('answer.questionId = question.id');
-          }, 'question_answers_count')
-          .orderBy('question_answers_count', 'DESC');
+      case QuestionSortOptions.MOST_ANSWERS:
+        queryBuilder = queryBuilder.orderBy('answersCount', 'DESC');
         break;
-      case 'newest':
+      case QuestionSortOptions.NEWEST:
         queryBuilder = queryBuilder.orderBy('question.createdAt', 'DESC');
+        break;
+    }
+    queryBuilder = queryBuilder.where('question.tags && :tags', { tags: dto.tags })
+      .orWhere(':tags IS NULL', { tags: dto.tags });
+
+    switch (dto.filter) {
+      case QuestionFilterOptions.UNANSWERED:
+        queryBuilder = queryBuilder.having('COUNT(ans.id) = 0')
     }
     return queryBuilder
-      .where('question.tags && :tags', { tags: dto.tags })
-      .orWhere(':tags IS NULL', { tags: dto.tags });
   }
 
   async findAll(dto: FindAllQuestionsDto): Promise<Question[]> {
     const queryBuilder = await this.buildQueryForFindAll(dto);
-    return await queryBuilder
+    const rawRes = await queryBuilder
       .take(dto.pageSize)
       .skip((dto.pageNum - 1) * dto.pageSize)
-      .getMany();
+      .getRawAndEntities();
+    rawRes.entities.forEach((ent, i) => ent.answersCount = rawRes.raw[i]["answersCount"])
+    return rawRes.entities
   }
 
   async getOne(id: number): Promise<Question | null> {

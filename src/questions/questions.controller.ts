@@ -4,6 +4,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Inject,
   Param,
   ParseArrayPipe,
   Post,
@@ -21,44 +22,46 @@ import { ParseIdPipe } from 'src/core/parse-id.pipe';
 
 @Controller('/questions')
 export class QuestionsController {
-  constructor(private readonly questionsService: QuestionsService) { }
+  @Inject() private readonly questionsService: QuestionsService;
+
   @Post()
   async create(@Body() dto: CreateQuestionDto) {
-    return this.questionsService
-      .create(dto)
-      .then((question) => {
-        return { question };
-      })
-      .catch((err) => {
-        const fail = (code: number) => {
-          throw new HttpException(err.message, code);
-        };
-        switch (true) {
-          case err instanceof QuestionAlreadyExistsError:
-            fail(HttpStatus.CONFLICT);
-          case err instanceof UserNotFoundError:
-            fail(HttpStatus.BAD_REQUEST);
-        }
-        throw err;
-      });
+    try {
+      const question = await this.questionsService.create(dto)
+      return { question };
+    } catch (err) {
+      const fail = (code: number) => {
+        throw new HttpException(err.message, code);
+      };
+      switch (true) {
+        case err instanceof QuestionAlreadyExistsError:
+          fail(HttpStatus.CONFLICT);
+        case err instanceof UserNotFoundError:
+          fail(HttpStatus.BAD_REQUEST);
+      }
+      throw err;
+    }
   }
-
   @Get()
   async findAll(@Query() dto: FindAllQuestionsDto) {
-    return this.questionsService.findAll(dto);
+    return await this.questionsService.findAll(dto);
   }
 
   @Get('/:id')
   async getOne(@Param('id', ParseIdPipe) id: number) {
-    return this.questionsService.getOne(id).catch((err) => {
+    try {
+      return await this.questionsService.getOne(id)
+    } catch (err) {
       if (err instanceof QuestionNotFoundError) {
-        throw new HttpException(err.message, 404);
+        throw new HttpException(err.message, HttpStatus.NOT_FOUND);
       }
-    });
+      throw err
+    }
   }
+
   @Get("/get-by-ids")
   async getByIds(@Query("ids", new ParseArrayPipe({ items: Number })) ids: number[]) {
-    return this.questionsService.getByIds(ids)
+    return await this.questionsService.getByIds(ids)
   }
 
 }

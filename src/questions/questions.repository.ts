@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Question } from './entities/question.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
-import { getErrCode, isQueryFailed } from 'src/core/typeorm-utils';
 import { FkViolationError, PostgresErrorCodes } from 'src/core/storage';
-import { AlreadyExistsError } from '../core/storage';
+import { AlreadyExistsError, getErrCode, isQueryFailed } from '../core/storage';
 import { IQuestionsRepository } from './questions.service';
 import { FindAllQuestionsDto, QuestionFilterOptions, QuestionSortOptions } from './dto/find-all-questions.dto';
 import { Answer } from './entities/answer.entity';
 
 @Injectable()
-export class TypeOrmQuestionsRepository implements IQuestionsRepository {
-  constructor(
-    @InjectRepository(Question) private questionsRepo: Repository<Question>,
-  ) { }
+export class QuestionsRepository implements IQuestionsRepository {
+  @InjectRepository(Question) private questionsRepo: Repository<Question>;
 
   async insert(dto: CreateQuestionDto): Promise<Question> {
     return this.questionsRepo
@@ -24,7 +21,6 @@ export class TypeOrmQuestionsRepository implements IQuestionsRepository {
         return this.questionsRepo.create(questionData);
       })
       .catch((err) => {
-        console.log('TypeOrmQuestionsRepository.insert, error:', err);
         if (isQueryFailed(err)) {
           switch (getErrCode(err)) {
             case PostgresErrorCodes.UNIQUE_VIOLATION:
@@ -53,7 +49,7 @@ export class TypeOrmQuestionsRepository implements IQuestionsRepository {
       .addGroupBy("author.id")
     switch (dto.sort) {
       case QuestionSortOptions.MOST_ANSWERS:
-        queryBuilder = queryBuilder.orderBy('answersCount', 'DESC');
+        queryBuilder = queryBuilder.orderBy('"answersCount"', 'DESC');
         break;
       case QuestionSortOptions.NEWEST:
         queryBuilder = queryBuilder.orderBy('question.createdAt', 'DESC');
@@ -72,8 +68,8 @@ export class TypeOrmQuestionsRepository implements IQuestionsRepository {
   async findAll(dto: FindAllQuestionsDto): Promise<Question[]> {
     const queryBuilder = await this.buildQueryForFindAll(dto);
     const rawRes = await queryBuilder
-      .take(dto.pageSize)
-      .skip((dto.pageNum - 1) * dto.pageSize)
+      .limit(dto.pageSize)
+      .offset((dto.pageNum - 1) * dto.pageSize)
       .getRawAndEntities();
     rawRes.entities.forEach((ent, i) => ent.answersCount = rawRes.raw[i]["answersCount"])
     return rawRes.entities

@@ -5,7 +5,7 @@ import {
 } from './questions.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Question } from './entities/question.entity';
-import { TypeOrmQuestionsRepository } from './questions.repository';
+import { QuestionsRepository } from './questions.repository';
 import { QuestionsController } from './questions.controller';
 
 @Module({
@@ -14,7 +14,7 @@ import { QuestionsController } from './questions.controller';
     QuestionsService,
     {
       provide: IQuestionsRepositoryToken,
-      useClass: TypeOrmQuestionsRepository,
+      useClass: QuestionsRepository,
     },
   ],
   controllers: [QuestionsController],

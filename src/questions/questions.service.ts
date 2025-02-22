@@ -22,10 +22,8 @@ export interface IQuestionsRepository {
 
 @Injectable()
 export class QuestionsService {
-  constructor(
-    @Inject(IQuestionsRepositoryToken)
-    private questionsRepo: IQuestionsRepository,
-  ) { }
+  @Inject(IQuestionsRepositoryToken) private questionsRepo: IQuestionsRepository;
+
   async create(dto: CreateQuestionDto): Promise<Question> {
     return this.questionsRepo.insert(dto).catch((err) => {
       switch (true) {

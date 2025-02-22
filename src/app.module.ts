@@ -9,10 +9,12 @@ import { Collection } from './questions/entities/collection.entity';
 import { SavedAnswer } from './questions/entities/saved-answer.entity';
 import { Comment } from './questions/entities/comment.entity';
 import { User } from './users/entities/user.entity';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
     QuestionsModule,
+    UsersModule,
     ConfigModule.forRoot({
       load: [configLoader(process.env.CONFIG_PATH)],
       isGlobal: true,
@@ -33,4 +35,4 @@ import { User } from './users/entities/user.entity';
     }),
   ],
 })
-export class AppModule {}
+export class AppModule { }

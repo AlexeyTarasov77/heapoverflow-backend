@@ -2,6 +2,8 @@ prod: false
 server:
   port: 5050
   host: 0.0.0.0
+auth_token_ttl: 1d
+jwt_secret: 64497434f0e8837425ac730efc4086c5
 db:
   host: localhost
   port: 5432

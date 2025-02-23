@@ -5,6 +5,8 @@ class StorageError extends Error { }
 
 export class AlreadyExistsError extends StorageError { }
 
+export class NotFoundError extends StorageError { }
+
 export class FkViolationError extends StorageError { }
 
 export enum PostgresErrorCodes {

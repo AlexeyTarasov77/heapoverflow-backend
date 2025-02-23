@@ -1,5 +1,5 @@
 
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IHasherToken, ITokenProviderToken, IUsersRepositoryToken, UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
@@ -9,6 +9,7 @@ import { UsersController } from './users.controller';
 import { JwtTokenProvider } from './tokens';
 import { ConfigService } from '@nestjs/config';
 import { Algorithm } from 'jsonwebtoken';
+import { AuthMiddleware } from 'src/core/middlewares';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
@@ -32,4 +33,9 @@ import { Algorithm } from 'jsonwebtoken';
   ],
   controllers: [UsersController],
 })
-export class UsersModule { }
+export class UsersModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes("*")
+  }
+
+}

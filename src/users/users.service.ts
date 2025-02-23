@@ -9,6 +9,18 @@ import { ConfigService } from "@nestjs/config";
 
 class UsersServiceError extends Error { }
 
+export class InvalidTokenError extends UsersServiceError {
+  constructor() {
+    super("Token is invalid")
+  }
+}
+
+export class ExpiredTokenError extends UsersServiceError {
+  constructor() {
+    super("Token is expired")
+  }
+}
+
 export class InvalidCredentialsError extends UsersServiceError {
   constructor() {
     super("Invalid email or password")

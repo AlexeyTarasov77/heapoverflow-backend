@@ -9,6 +9,8 @@ import {
   ParseArrayPipe,
   Post,
   Query,
+  Res,
+  UseGuards,
 } from '@nestjs/common';
 import {
   QuestionAlreadyExistsError,
@@ -19,16 +21,19 @@ import { CreateQuestionDto } from './dto/create-question.dto';
 import { FindAllQuestionsDto } from './dto/find-all-questions.dto';
 import { UserNotFoundError } from 'src/users/users.service';
 import { ParseIdPipe } from 'src/core/parse-id.pipe';
+import { AuthGuard } from 'src/core/middlewares';
+import { Response } from 'express';
 
 @Controller('/questions')
 export class QuestionsController {
   @Inject() private readonly questionsService: QuestionsService;
 
+  @UseGuards(AuthGuard)
   @Post()
-  async create(@Body() dto: CreateQuestionDto) {
+  async create(@Res() res: Response, @Body() dto: CreateQuestionDto) {
+    console.log("user id ", res.locals.userId)
     try {
-      const authorId = 1 // temporary set to 1. TODO: Retrieve from auth token later
-      const question = await this.questionsService.create(dto, authorId)
+      const question = await this.questionsService.create(dto, res.locals.userId)
       return { success: true, question };
     } catch (err) {
       const fail = (code: number) => {

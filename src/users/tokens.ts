@@ -1,5 +1,5 @@
-import { ITokenProvider, TokenPayload } from "./users.service";
-import { Algorithm, sign, verify } from "jsonwebtoken";
+import { ExpiredTokenError, InvalidTokenError, ITokenProvider, TokenPayload } from "./users.service";
+import { Algorithm, sign, TokenExpiredError as JsonWebTokenExpiredError, verify, JsonWebTokenError } from "jsonwebtoken";
 import { StringValue } from 'ms'
 
 export class JwtTokenProvider implements ITokenProvider {
@@ -18,8 +18,18 @@ export class JwtTokenProvider implements ITokenProvider {
     )
   }
   parse = async (token: string): Promise<TokenPayload> => {
-    return new Promise((resolve, reject) => verify(token, this.secret, (err, decoded) =>
-      err ? reject(err) : resolve(decoded as TokenPayload)
+    return new Promise((resolve, reject) => verify(token, this.secret, (err, decoded) => {
+      if (err) {
+        let finalErr: Error = err;
+        if (err instanceof JsonWebTokenExpiredError) {
+          finalErr = new ExpiredTokenError()
+        } else if (err instanceof JsonWebTokenError) {
+          finalErr = new InvalidTokenError()
+        }
+        return reject(err)
+      }
+      return resolve(decoded as TokenPayload)
+    }
     ))
   }
 }

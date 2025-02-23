@@ -1,7 +1,9 @@
-import { Body, Controller, HttpException, HttpStatus, Inject, Post } from "@nestjs/common";
-import { InvalidCredentialsError, UserAlreadyExistsError, UsersService } from "./users.service";
+import { Body, Controller, Get, HttpException, HttpStatus, Inject, Post, Res, UseGuards } from "@nestjs/common";
+import { InvalidCredentialsError, UserAlreadyExistsError, UserNotFoundError, UsersService } from "./users.service";
 import { SignUpDTO } from "./dto/signup.dto";
 import { SignInDTO } from "./dto/signin.dto";
+import { Response } from "express";
+import { AuthGuard } from "src/core/middlewares";
 
 @Controller('/users')
 export class UsersController {
@@ -30,6 +32,20 @@ export class UsersController {
         throw new HttpException({ success: false, message: err.message }, HttpStatus.UNAUTHORIZED)
       }
       throw err
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get("/me")
+  async getAuthenticatedUser(@Res({ passthrough: true }) res: Response) {
+    try {
+      const user = await this.usersService.getById(res.locals.userId)
+      return { success: true, data: user }
+    } catch (err) {
+      if (err instanceof UserNotFoundError) {
+        throw new HttpException({ success: false, message: "User associated with provided token does not exist. Token is not valid!" }, HttpStatus.BAD_REQUEST)
+      }
+      throw err;
     }
   }
 } 

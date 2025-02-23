@@ -30,7 +30,7 @@ export class QuestionsController {
 
   @UseGuards(AuthGuard)
   @Post()
-  async create(@Res() res: Response, @Body() dto: CreateQuestionDto) {
+  async create(@Res({ passthrough: true }) res: Response, @Body() dto: CreateQuestionDto) {
     console.log("user id ", res.locals.userId)
     try {
       const question = await this.questionsService.create(dto, res.locals.userId)

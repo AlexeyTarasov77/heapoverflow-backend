@@ -1,10 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { StringValue } from "ms"
 import { User } from "./entities/user.entity";
-import { AlreadyExistsError } from "src/core/storage";
+import { AlreadyExistsError, NotFoundError } from "src/core/storage";
 import { SignUpDTO } from "./dto/signup.dto";
 import { SignInDTO } from "./dto/signin.dto";
-import { NotFoundError } from "rxjs";
 import { ConfigService } from "@nestjs/config";
 
 class UsersServiceError extends Error { }
@@ -32,6 +31,7 @@ export class UserAlreadyExistsError extends UsersServiceError { }
 export interface IUsersRepository {
   insert(dto: SignUpDTO, passwordHash: string): Promise<User>
   getByEmail(email: string): Promise<User>
+  getById(userId: number): Promise<User>
 }
 
 export type TokenPayload = Record<string, any>
@@ -85,5 +85,17 @@ export class UsersService {
       }
       throw err;
     }
+  }
+
+  async getById(userId: number): Promise<User> {
+    try {
+      var user = await this.usersRepo.getById(userId)
+    } catch (err) {
+      if (err instanceof NotFoundError) {
+        throw new UserNotFoundError()
+      }
+      throw err
+    }
+    return user
   }
 }

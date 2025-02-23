@@ -11,7 +11,7 @@ export class UsersController {
   async signUp(@Body() dto: SignUpDTO) {
     try {
       const user = await this.usersService.signUp(dto)
-      return { success: true, user }
+      return { success: true, data: user }
     } catch (err) {
       if (err instanceof UserAlreadyExistsError) {
         throw new HttpException({ success: false, message: err.message }, HttpStatus.CONFLICT)
@@ -24,7 +24,7 @@ export class UsersController {
   async signIn(@Body() dto: SignInDTO) {
     try {
       const token = await this.usersService.signIn(dto)
-      return { success: true, token }
+      return { success: true, data: token }
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {
         throw new HttpException({ success: false, message: err.message }, HttpStatus.UNAUTHORIZED)

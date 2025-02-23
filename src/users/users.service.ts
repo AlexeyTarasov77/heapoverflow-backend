@@ -55,7 +55,8 @@ export class UsersService {
       }
       throw err
     }
-    if (!this.hasher.compare(dto.password, user.passwordHash)) {
+    const passwordsEqual = await this.hasher.compare(dto.password, user.passwordHash)
+    if (!passwordsEqual) {
       throw new InvalidCredentialsError()
     }
     const tokenTTL: StringValue = this.config.get<StringValue>("auth_token_ttl")

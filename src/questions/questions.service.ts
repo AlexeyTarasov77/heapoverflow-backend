@@ -14,7 +14,7 @@ export class QuestionNotFoundError extends QuestionsServiceError { }
 export const IQuestionsRepositoryToken = Symbol('IQuestionsRepository');
 
 export interface IQuestionsRepository {
-  insert(dto: CreateQuestionDto): Promise<Question>;
+  insert(dto: CreateQuestionDto, authorId: number): Promise<Question>;
   findAll(dto: FindAllQuestionsDto): Promise<Question[]>;
   getOne(id: number): Promise<Question | null>;
   getByIds(ids: number[]): Promise<Question[]>;
@@ -24,8 +24,8 @@ export interface IQuestionsRepository {
 export class QuestionsService {
   @Inject(IQuestionsRepositoryToken) private questionsRepo: IQuestionsRepository;
 
-  async create(dto: CreateQuestionDto): Promise<Question> {
-    return this.questionsRepo.insert(dto).catch((err) => {
+  async create(dto: CreateQuestionDto, authorId: number): Promise<Question> {
+    return this.questionsRepo.insert(dto, authorId).catch((err) => {
       switch (true) {
         case err instanceof AlreadyExistsError:
           throw new QuestionAlreadyExistsError(err.message);

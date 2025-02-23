@@ -27,11 +27,12 @@ export class QuestionsController {
   @Post()
   async create(@Body() dto: CreateQuestionDto) {
     try {
-      const question = await this.questionsService.create(dto)
-      return { question };
+      const authorId = 1 // temporary set to 1. TODO: Retrieve from auth token later
+      const question = await this.questionsService.create(dto, authorId)
+      return { success: true, question };
     } catch (err) {
       const fail = (code: number) => {
-        throw new HttpException(err.message, code);
+        throw new HttpException({ success: false, message: err.message }, code);
       };
       switch (true) {
         case err instanceof QuestionAlreadyExistsError:

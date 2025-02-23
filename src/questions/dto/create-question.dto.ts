@@ -1,10 +1,8 @@
 import {
   ArrayMinSize,
   IsArray,
-  IsInt,
   IsNotEmpty,
   Length,
-  Min,
 } from 'class-validator';
 
 export class CreateQuestionDto {
@@ -15,10 +13,6 @@ export class CreateQuestionDto {
   @Length(20, 1000)
   @IsNotEmpty()
   readonly body: string;
-
-  @Min(1)
-  @IsInt()
-  readonly authorId: number;
 
   @ArrayMinSize(1)
   @IsArray()

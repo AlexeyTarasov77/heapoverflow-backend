@@ -13,9 +13,9 @@ import { Answer } from './entities/answer.entity';
 export class QuestionsRepository implements IQuestionsRepository {
   @InjectRepository(Question) private questionsRepo: Repository<Question>;
 
-  async insert(dto: CreateQuestionDto): Promise<Question> {
+  async insert(dto: CreateQuestionDto, authorId: number): Promise<Question> {
     return this.questionsRepo
-      .insert({ ...dto, author: { id: dto.authorId } })
+      .insert({ ...dto, author: { id: authorId } })
       .then((res) => {
         const questionData = { ...res.generatedMaps[0], ...dto };
         return this.questionsRepo.create(questionData);
@@ -29,7 +29,7 @@ export class QuestionsRepository implements IQuestionsRepository {
               );
             case PostgresErrorCodes.FK_VIOLATION:
               throw new FkViolationError(
-                `Author with id ${dto.authorId} doesn't exist`,
+                `Author with id ${authorId} doesn't exist`,
               );
           }
         }

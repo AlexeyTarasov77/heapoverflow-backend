@@ -23,6 +23,7 @@ import { UserNotFoundError } from 'src/users/users.service';
 import { ParseIdPipe } from 'src/core/parse-id.pipe';
 import { AuthGuard } from 'src/core/middlewares';
 import { Response } from 'express';
+import { getSuccededResponse } from 'src/core/utils';
 
 @Controller('/questions')
 export class QuestionsController {
@@ -34,7 +35,7 @@ export class QuestionsController {
     console.log("user id ", res.locals.userId)
     try {
       const question = await this.questionsService.create(dto, res.locals.userId)
-      return { success: true, question };
+      return getSuccededResponse(question)
     } catch (err) {
       const fail = (code: number) => {
         throw new HttpException({ success: false, message: err.message }, code);
@@ -50,13 +51,15 @@ export class QuestionsController {
   }
   @Get()
   async findAll(@Query() dto: FindAllQuestionsDto) {
-    return await this.questionsService.findAll(dto);
+    const questions = await this.questionsService.findAll(dto);
+    return getSuccededResponse(questions)
   }
 
   @Get('/:id')
   async getOne(@Param('id', ParseIdPipe) id: number) {
     try {
-      return await this.questionsService.getOne(id)
+      const question = await this.questionsService.getOne(id)
+      return getSuccededResponse(question)
     } catch (err) {
       if (err instanceof QuestionNotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);
@@ -67,7 +70,8 @@ export class QuestionsController {
 
   @Get("/get-by-ids")
   async getByIds(@Query("ids", new ParseArrayPipe({ items: Number })) ids: number[]) {
-    return await this.questionsService.getByIds(ids)
+    const questions = await this.questionsService.getByIds(ids)
+    return getSuccededResponse(questions)
   }
 
 }

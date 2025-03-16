@@ -4,6 +4,7 @@ import { SignUpDTO } from "./dto/signup.dto";
 import { SignInDTO } from "./dto/signin.dto";
 import { Response } from "express";
 import { AuthGuard } from "src/core/middlewares";
+import { getSuccededResponse } from "src/core/utils";
 
 @Controller('/users')
 export class UsersController {
@@ -13,7 +14,7 @@ export class UsersController {
   async signUp(@Body() dto: SignUpDTO) {
     try {
       const user = await this.usersService.signUp(dto)
-      return { success: true, data: user }
+      return getSuccededResponse(user)
     } catch (err) {
       if (err instanceof UserAlreadyExistsError) {
         throw new HttpException({ success: false, message: err.message }, HttpStatus.CONFLICT)
@@ -26,7 +27,7 @@ export class UsersController {
   async signIn(@Body() dto: SignInDTO) {
     try {
       const token = await this.usersService.signIn(dto)
-      return { success: true, data: token }
+      return getSuccededResponse(token)
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {
         throw new HttpException({ success: false, message: err.message }, HttpStatus.UNAUTHORIZED)
@@ -40,7 +41,7 @@ export class UsersController {
   async getAuthenticatedUser(@Res({ passthrough: true }) res: Response) {
     try {
       const user = await this.usersService.getById(res.locals.userId)
-      return { success: true, data: user }
+      return getSuccededResponse(user)
     } catch (err) {
       if (err instanceof UserNotFoundError) {
         throw new HttpException({ success: false, message: "User associated with provided token does not exist. Token is not valid!" }, HttpStatus.BAD_REQUEST)

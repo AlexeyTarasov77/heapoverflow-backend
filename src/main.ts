@@ -1,8 +1,8 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import { AuthMiddleware } from './core/middlewares';
+import { GlobalExceptionFilter } from './core/http-exception.filter';
 
 async function start() {
   if (!process.env.CONFIG_PATH) {
@@ -11,6 +11,7 @@ async function start() {
   }
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalFilters(new GlobalExceptionFilter())
   app.enableCors();
   const configService = app.get(ConfigService);
   const PORT = configService.get<number>('server.port') ?? 3000;

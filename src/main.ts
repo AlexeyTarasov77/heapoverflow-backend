@@ -1,8 +1,8 @@
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import { GlobalExceptionFilter } from './core/http-exception.filter';
+import { GlobalExceptionFilter } from './core/exception.filter';
 
 async function start() {
   if (!process.env.CONFIG_PATH) {

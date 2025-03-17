@@ -19,8 +19,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let message: HttpExceptionBodyMessage = "Unexpected error"
     if (exception instanceof HttpException) {
       httpStatus = exception.getStatus()
-      console.log("message", exception.getResponse()["message"])
-      message = exception.getResponse()["message"]
+      const excResp = exception.getResponse()
+      message = typeof excResp === "string" ? excResp : excResp["message"]
     }
     resp.status(httpStatus).json(getFailedResponse(message))
   }

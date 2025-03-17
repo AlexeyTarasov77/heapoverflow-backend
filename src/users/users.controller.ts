@@ -17,7 +17,7 @@ export class UsersController {
       return getSuccededResponse(user)
     } catch (err) {
       if (err instanceof UserAlreadyExistsError) {
-        throw new HttpException({ success: false, message: err.message }, HttpStatus.CONFLICT)
+        throw new HttpException(err.message, HttpStatus.CONFLICT)
       }
       throw err;
     }
@@ -30,7 +30,7 @@ export class UsersController {
       return getSuccededResponse(token)
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {
-        throw new HttpException({ success: false, message: err.message }, HttpStatus.UNAUTHORIZED)
+        throw new HttpException(err.message, HttpStatus.UNAUTHORIZED)
       }
       throw err
     }
@@ -44,7 +44,7 @@ export class UsersController {
       return getSuccededResponse(user)
     } catch (err) {
       if (err instanceof UserNotFoundError) {
-        throw new HttpException({ success: false, message: "User associated with provided token does not exist. Token is not valid!" }, HttpStatus.BAD_REQUEST)
+        throw new HttpException(err.message, HttpStatus.BAD_REQUEST)
       }
       throw err;
     }

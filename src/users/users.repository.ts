@@ -1,7 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { AlreadyExistsError, NotFoundError, getErrCode, isQueryFailed, PostgresErrorCodes } from '../core/storage';
 import { User } from "./entities/user.entity";
-import { FindOptionsWhere, Repository } from "typeorm";
+import { FindOneOptions, Repository } from "typeorm";
 import { IUsersRepository } from "./users.service";
 import { SignUpDTO } from "./dto/signup.dto";
 
@@ -19,8 +19,8 @@ export class UsersRepository implements IUsersRepository {
     }
   }
 
-  private async getOne(options: FindOptionsWhere<User>) {
-    const user = await this.usersRepo.findOneBy(options)
+  private async getOne(options: FindOneOptions<User>) {
+    const user = await this.usersRepo.findOne(options)
     if (user === null) {
       const filterPairs = Object.entries(options).map(([key, value]) => `${key}=${value}`)
       throw new NotFoundError(`User with ${filterPairs.join(' ')} does not exist`)
@@ -29,10 +29,10 @@ export class UsersRepository implements IUsersRepository {
   }
 
   async getByEmail(email: string): Promise<User> {
-    return await this.getOne({ email })
+    return await this.getOne({ where: { email } })
   }
 
   async getById(userId: number): Promise<User> {
-    return await this.getOne({ id: userId })
+    return await this.getOne({ where: { id: userId }, relations: { questions: true } })
   }
 }

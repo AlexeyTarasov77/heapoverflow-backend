@@ -1,6 +1,6 @@
-import { readFileSync } from "fs";
-import { load } from "js-yaml";
-import { DataSource } from "typeorm";
+import { readFileSync } from 'fs';
+import { load } from 'js-yaml';
+import { DataSource } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { User } from 'src/users/entities/user.entity';
 import { Question } from 'src/questions/entities/question.entity';
@@ -45,7 +45,8 @@ async function seedDatabase(dataSource: DataSource) {
   for (let i = 0; i < 15; i++) {
     const answer = answerRepository.create({
       body: faker.lorem.paragraph(),
-      question: questions[faker.number.int({ min: 0, max: questions.length - 1 })],
+      question:
+        questions[faker.number.int({ min: 0, max: questions.length - 1 })],
       author: users[faker.number.int({ min: 0, max: users.length - 1 })],
       upvotes: faker.number.int({ min: 0, max: 100 }),
     });
@@ -57,7 +58,10 @@ async function seedDatabase(dataSource: DataSource) {
     const comment = commentRepository.create({
       body: faker.lorem.sentence(),
       author: users[faker.number.int({ min: 0, max: users.length - 1 })],
-      parentComment: i % 2 === 0 ? null : faker.helpers.arrayElement(await commentRepository.find()),
+      parentComment:
+        i % 2 === 0
+          ? null
+          : faker.helpers.arrayElement(await commentRepository.find()),
     });
     await commentRepository.save(comment);
   }
@@ -76,7 +80,8 @@ async function seedDatabase(dataSource: DataSource) {
     const savedAnswer = savedAnswerRepository.create({
       user: users[faker.number.int({ min: 0, max: users.length - 1 })],
       answer: answers[faker.number.int({ min: 0, max: answers.length - 1 })],
-      collection: collections[faker.number.int({ min: 0, max: collections.length - 1 })],
+      collection:
+        collections[faker.number.int({ min: 0, max: collections.length - 1 })],
     });
     await savedAnswerRepository.save(savedAnswer);
   }
@@ -84,11 +89,14 @@ async function seedDatabase(dataSource: DataSource) {
   console.log('Database seeded successfully!');
 }
 
-const config = load(readFileSync(".src/config/local.yaml", 'utf8')) as Record<string, any>;
+const config = load(readFileSync('.src/config/local.yaml', 'utf8')) as Record<
+  string,
+  any
+>;
 const dsn = new DataSource({
-  type: "postgres",
+  type: 'postgres',
   host: config.db.host,
   port: config.db.port,
-  name: config.db.name
-})
-seedDatabase(dsn)
+  name: config.db.name,
+});
+seedDatabase(dsn);

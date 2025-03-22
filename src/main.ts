@@ -11,7 +11,7 @@ async function start() {
   }
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
-  app.useGlobalFilters(new GlobalExceptionFilter())
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.enableCors();
   const configService = app.get(ConfigService);
   const PORT = configService.get<number>('server.port') ?? 3000;

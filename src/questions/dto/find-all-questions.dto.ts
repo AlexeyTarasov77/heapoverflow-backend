@@ -8,14 +8,13 @@ import {
   Min,
 } from 'class-validator';
 
-
 export enum QuestionFilterOptions {
-  UNANSWERED = "unanswered"
+  UNANSWERED = 'unanswered',
 }
 
 export enum QuestionSortOptions {
-  MOST_ANSWERS = "mostAnswers",
-  NEWEST = "newest"
+  MOST_ANSWERS = 'mostAnswers',
+  NEWEST = 'newest',
 }
 
 export class FindAllQuestionsDto {
@@ -28,7 +27,6 @@ export class FindAllQuestionsDto {
   @IsString()
   @IsOptional()
   readonly filter: string;
-
 
   @Min(1)
   @IsInt()

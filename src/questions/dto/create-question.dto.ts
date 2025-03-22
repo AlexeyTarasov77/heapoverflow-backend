@@ -1,9 +1,4 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsNotEmpty,
-  Length,
-} from 'class-validator';
+import { ArrayMinSize, IsArray, IsNotEmpty, Length } from 'class-validator';
 
 export class CreateQuestionDto {
   @Length(10, 100)

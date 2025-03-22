@@ -31,11 +31,16 @@ export class QuestionsController {
 
   @UseGuards(AuthGuard)
   @Post()
-  async create(@Res({ passthrough: true }) res: Response, @Body() dto: CreateQuestionDto) {
-    console.log("user id ", res.locals.userId)
+  async create(
+    @Res({ passthrough: true }) res: Response,
+    @Body() dto: CreateQuestionDto,
+  ) {
     try {
-      const question = await this.questionsService.create(dto, res.locals.userId)
-      return getSuccededResponse(question)
+      const question = await this.questionsService.create(
+        dto,
+        res.locals.userId,
+      );
+      return getSuccededResponse(question);
     } catch (err) {
       const fail = (code: number) => {
         throw new HttpException({ success: false, message: err.message }, code);
@@ -52,26 +57,27 @@ export class QuestionsController {
   @Get()
   async findAll(@Query() dto: FindAllQuestionsDto) {
     const questions = await this.questionsService.findAll(dto);
-    return getSuccededResponse(questions)
+    return getSuccededResponse(questions);
   }
 
   @Get('/:id')
   async getOne(@Param('id', ParseIdPipe) id: number) {
     try {
-      const question = await this.questionsService.getOne(id)
-      return getSuccededResponse(question)
+      const question = await this.questionsService.getOne(id);
+      return getSuccededResponse(question);
     } catch (err) {
       if (err instanceof QuestionNotFoundError) {
         throw new HttpException(err.message, HttpStatus.NOT_FOUND);
       }
-      throw err
+      throw err;
     }
   }
 
-  @Get("/get-by-ids")
-  async getByIds(@Query("ids", new ParseArrayPipe({ items: Number })) ids: number[]) {
-    const questions = await this.questionsService.getByIds(ids)
-    return getSuccededResponse(questions)
+  @Get('/get-by-ids')
+  async getByIds(
+    @Query('ids', new ParseArrayPipe({ items: Number })) ids: number[],
+  ) {
+    const questions = await this.questionsService.getByIds(ids);
+    return getSuccededResponse(questions);
   }
-
 }

@@ -5,8 +5,12 @@ import { Question } from './entities/question.entity';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { FkViolationError, PostgresErrorCodes } from 'src/core/storage';
 import { AlreadyExistsError, getErrCode, isQueryFailed } from '../core/storage';
-import { IQuestionsRepository } from './questions.service';
-import { FindAllQuestionsDto, QuestionFilterOptions, QuestionSortOptions } from './dto/find-all-questions.dto';
+import { IAnswersRepository, IQuestionsRepository } from './questions.types';
+import {
+  FindAllQuestionsDto,
+  QuestionFilterOptions,
+  QuestionSortOptions,
+} from './dto/find-all-questions.dto';
 import { Answer } from './entities/answer.entity';
 
 @Injectable()
@@ -43,10 +47,10 @@ export class QuestionsRepository implements IQuestionsRepository {
     let queryBuilder = this.questionsRepo
       .createQueryBuilder('question')
       .innerJoinAndSelect('question.author', 'author')
-      .leftJoin(Answer, "ans", 'ans."questionId" = question.id')
-      .addSelect("COUNT(ans.id)", "answersCount")
-      .groupBy("question.id")
-      .addGroupBy("author.id")
+      .leftJoin(Answer, 'ans', 'ans."questionId" = question.id')
+      .addSelect('COUNT(ans.id)', 'answersCount')
+      .groupBy('question.id')
+      .addGroupBy('author.id');
     switch (dto.sort) {
       case QuestionSortOptions.MOST_ANSWERS:
         queryBuilder = queryBuilder.orderBy('"answersCount"', 'DESC');
@@ -55,14 +59,15 @@ export class QuestionsRepository implements IQuestionsRepository {
         queryBuilder = queryBuilder.orderBy('question.createdAt', 'DESC');
         break;
     }
-    queryBuilder = queryBuilder.where('question.tags && :tags', { tags: dto.tags })
+    queryBuilder = queryBuilder
+      .where('question.tags && :tags', { tags: dto.tags })
       .orWhere(':tags IS NULL', { tags: dto.tags });
 
     switch (dto.filter) {
       case QuestionFilterOptions.UNANSWERED:
-        queryBuilder = queryBuilder.having('COUNT(ans.id) = 0')
+        queryBuilder = queryBuilder.having('COUNT(ans.id) = 0');
     }
-    return queryBuilder
+    return queryBuilder;
   }
 
   async findAll(dto: FindAllQuestionsDto): Promise<Question[]> {
@@ -71,8 +76,10 @@ export class QuestionsRepository implements IQuestionsRepository {
       .limit(dto.pageSize)
       .offset((dto.pageNum - 1) * dto.pageSize)
       .getRawAndEntities();
-    rawRes.entities.forEach((ent, i) => ent.answersCount = rawRes.raw[i]["answersCount"])
-    return rawRes.entities
+    rawRes.entities.forEach(
+      (ent, i) => (ent.answersCount = rawRes.raw[i]['answersCount']),
+    );
+    return rawRes.entities;
   }
 
   async getOne(id: number): Promise<Question | null> {
@@ -84,10 +91,26 @@ export class QuestionsRepository implements IQuestionsRepository {
     return await queryBuilder.getOne();
   }
   async getByIds(ids: number[]): Promise<Question[]> {
-    return await this.questionsRepo.createQueryBuilder("question")
+    return await this.questionsRepo
+      .createQueryBuilder('question')
       .innerJoinAndSelect('question.author', 'author')
-      .where("question.id IN (:...ids)", { ids })
-      .getMany()
+      .where('question.id IN (:...ids)', { ids })
+      .getMany();
   }
+}
 
+@Injectable()
+export class AnswersRepository implements IAnswersRepository {
+  @InjectRepository(Answer) private answersRepo: Repository<Answer>;
+  async addForQuestion(
+    questionID: number,
+    authorID: number,
+    body: string,
+  ): Promise<void> {
+    this.answersRepo.insert({
+      body,
+      question: { id: questionID },
+      author: { id: authorID },
+    });
+  }
 }

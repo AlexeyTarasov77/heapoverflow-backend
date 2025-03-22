@@ -4,6 +4,18 @@ import { Question } from './entities/question.entity';
 import { AlreadyExistsError, FkViolationError } from 'src/core/storage';
 import { FindAllQuestionsDto } from './dto/find-all-questions.dto';
 import { UserNotFoundError } from 'src/users/users.service';
+import {
+  IQuestionsRepository,
+  IQuestionsRepositoryToken,
+  IAnswersRepository,
+  IAnswerGeneratorToken,
+  IAnswerGenerator,
+  IAnswersRepositoryToken,
+  IBackgroundRunnerToken,
+  IBackgroundRunner,
+  IUsersRepository,
+  IUsersRepositoryToken,
+} from './questions.types';
 
 class QuestionsServiceError extends Error { }
 
@@ -11,29 +23,41 @@ export class QuestionAlreadyExistsError extends QuestionsServiceError { }
 
 export class QuestionNotFoundError extends QuestionsServiceError { }
 
-export const IQuestionsRepositoryToken = Symbol('IQuestionsRepository');
-
-export interface IQuestionsRepository {
-  insert(dto: CreateQuestionDto, authorId: number): Promise<Question>;
-  findAll(dto: FindAllQuestionsDto): Promise<Question[]>;
-  getOne(id: number): Promise<Question | null>;
-  getByIds(ids: number[]): Promise<Question[]>;
-}
-
 @Injectable()
 export class QuestionsService {
-  @Inject(IQuestionsRepositoryToken) private questionsRepo: IQuestionsRepository;
+  @Inject(IQuestionsRepositoryToken)
+  private questionsRepo: IQuestionsRepository;
+  @Inject(IAnswersRepositoryToken) private answersRepo: IAnswersRepository;
+  @Inject(IUsersRepositoryToken) private usersRepo: IUsersRepository;
+  @Inject(IAnswerGeneratorToken) private answerGenerator: IAnswerGenerator;
+  @Inject(IBackgroundRunnerToken) private backgroundRunner: IBackgroundRunner;
 
   async create(dto: CreateQuestionDto, authorId: number): Promise<Question> {
-    return this.questionsRepo.insert(dto, authorId).catch((err) => {
-      switch (true) {
-        case err instanceof AlreadyExistsError:
-          throw new QuestionAlreadyExistsError(err.message);
-        case err instanceof FkViolationError:
-          throw new UserNotFoundError(err.message);
-      }
-      throw err;
-    });
+    return this.questionsRepo
+      .insert(dto, authorId)
+      .then((question) => {
+        const task = async () => {
+          const answerText =
+            await this.answerGenerator.generateAnswerForQuestion(question);
+          const authorID = await this.usersRepo.getBotAccID();
+          await this.answersRepo.addForQuestion(
+            question.id,
+            authorID,
+            answerText,
+          );
+        };
+        this.backgroundRunner.runInBackground(task, "generate answer");
+        return question;
+      })
+      .catch((err) => {
+        switch (true) {
+          case err instanceof AlreadyExistsError:
+            throw new QuestionAlreadyExistsError(err.message);
+          case err instanceof FkViolationError:
+            throw new UserNotFoundError(err.message);
+        }
+        throw err;
+      });
   }
 
   async findAll(dto: FindAllQuestionsDto): Promise<Question[]> {

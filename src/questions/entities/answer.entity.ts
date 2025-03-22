@@ -14,7 +14,7 @@ export class Answer extends Content {
   @OneToMany(() => Question, (question: Question) => question.bestAnswer)
   bestForQuestion: Question;
 
-  @Column()
+  @Column({ default: 0 })
   upvotes: number;
 
   @ManyToOne(() => User, (user: User) => user.answers, { nullable: false })

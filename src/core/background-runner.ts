@@ -1,6 +1,8 @@
 export class backgroundRunner {
-  async runInBackground<T = any>(func: () => T): Promise<T> {
-    console.log('Start running background task: ', func);
+  async runInBackground<T = any>(func: () => T, taskName?: string): Promise<T> {
+    let msg = 'Start running background task'
+    taskName && (msg += ": " + taskName)
+    console.log(msg);
     try {
       const res = await func();
       console.log('Background task succesfully completed with result: ', res);

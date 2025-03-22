@@ -1,13 +1,13 @@
 import { QueryFailedError } from 'typeorm';
 import { DatabaseError } from 'pg-protocol';
 
-class StorageError extends Error { }
+class StorageError extends Error {}
 
-export class AlreadyExistsError extends StorageError { }
+export class AlreadyExistsError extends StorageError {}
 
-export class NotFoundError extends StorageError { }
+export class NotFoundError extends StorageError {}
 
-export class FkViolationError extends StorageError { }
+export class FkViolationError extends StorageError {}
 
 export enum PostgresErrorCodes {
   UNIQUE_VIOLATION = '23505',

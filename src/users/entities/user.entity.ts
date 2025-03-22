@@ -6,6 +6,7 @@ import { Comment } from 'src/questions/entities/comment.entity';
 import { Column, Entity, OneToMany } from 'typeorm';
 
 export enum UserRole {
+  BOT = 0,
   USER = 1,
   MODERATOR = 2,
   ADMIN = 3,

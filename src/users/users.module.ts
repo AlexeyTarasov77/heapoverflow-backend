@@ -1,7 +1,11 @@
-
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IHasherToken, ITokenProviderToken, IUsersRepositoryToken, UsersService } from './users.service';
+import {
+  IHasherToken,
+  ITokenProviderToken,
+  IUsersRepositoryToken,
+} from './users.types';
+import { UsersService } from './users.service';
 import { UsersRepository } from './users.repository';
 import { BcryptHasher } from './hashing';
 import { User } from './entities/user.entity';
@@ -27,15 +31,16 @@ import { AuthMiddleware } from 'src/core/middlewares';
       provide: ITokenProviderToken,
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
-        new JwtTokenProvider(configService.get<string>("jwt_secret"), configService.get<Algorithm | undefined>("jwt_alg"))
+        new JwtTokenProvider(
+          configService.get<string>('jwt_secret'),
+          configService.get<Algorithm | undefined>('jwt_alg'),
+        ),
     },
-
   ],
   controllers: [UsersController],
 })
 export class UsersModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes("*")
+    consumer.apply(AuthMiddleware).forRoutes('*');
   }
-
 }

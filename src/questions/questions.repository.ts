@@ -86,6 +86,8 @@ export class QuestionsRepository implements IQuestionsRepository {
     const queryBuilder = this.questionsRepo
       .createQueryBuilder('question')
       .innerJoinAndSelect('question.author', 'author')
+      .leftJoinAndSelect('question.answers', 'answers')
+      .leftJoinAndSelect('answers.author', 'answer_author')
       .loadRelationCountAndMap('question.answersCount', 'question.answers')
       .where('question.id = :id', { id });
     return await queryBuilder.getOne();

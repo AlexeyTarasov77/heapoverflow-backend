@@ -22,7 +22,6 @@ export class LlamaAPIClient implements IAnswerGenerator {
       }),
     });
     const data: LlamaResponse = await resp.json();
-    console.log("API RESPONSE", data)
     return data.response;
   };
 }
